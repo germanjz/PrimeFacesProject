@@ -1,0 +1,138 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"  
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:f="http://java.sun.com/jsf/core" 
+      xmlns:p="http://primefaces.org/ui">
+
+    <f:view contentType="text/html">
+        <h:head>
+            <f:facet name="first">
+                <meta content='text/html; charset=UTF-8' http-equiv="Content-Type"/>
+                <title>My Gallery</title>
+            </f:facet>  
+            <style>
+                body {
+                    font-size: 13px;
+                }
+                td {             
+                    vertical-align: top;
+                }
+            </style>
+        </h:head>
+
+        <h:body>
+            <p:layout fullPage='true'>
+                <p:layoutUnit position="north" style="text-align: center;" size="100" resizable="false" closable="false" collapsible='true'>
+                    <p:graphicImage name="icons/logo.png" />
+                </p:layoutUnit>
+
+                <p:layoutUnit position="south" style="text-align: right;" size="100" closable="false" collapsible='false'>
+                    <p:graphicImage name="icons/packt.png" />
+                </p:layoutUnit>
+
+                <p:layoutUnit position='center'>
+                    <p:panelGrid columns="2">
+                        <h:outputText value="Mis Fotos"/>
+                        <p:ajaxStatus>
+                            <f:facet name="default">
+                                <h:outputText value="Mi Galería" />
+                            </f:facet>
+                            <f:facet name="start">
+                                <p:graphicImage name="icons/ajax-loader.gif" height="10" />
+                            </f:facet>
+                            <f:facet name="complete">
+                                <h:outputText value="Mi Galería" />
+                            </f:facet>
+                        </p:ajaxStatus>
+                        
+                        <h:form id='tableFormId'>
+                            <p:dataTable id="tablePhotosId"
+                                         value='#{galeriaBean.fotos}'
+                                         var='t'
+                                         rows="10"
+                                         paginator="true"
+                                         paginatorTemplate="
+                                         {CurrentPageReport}  
+                                         {FirstPageLink}
+                                         {PreviousPageLink} 
+                                         {PageLinks} 
+                                         {NextPageLink}
+                                         {LastPageLink}"
+                                         rowsPerPageTemplate="5,10"
+                                         emptyMessage="No se encontraron Imagenes...">
+                                <p:column headerText="Ver" style="width: 150px;">
+                                    <p:graphicImage id="previewId"
+                                                    name='icons/preview.png'
+                                                    style='cursor: pointer' />
+
+                                    <p:overlayPanel id="previewPanelId"
+                                                    for='previewId'
+                                                    showEffect="blind"
+                                                    hideEffect="explode"
+                                                    showEvent="mouseover"
+                                                    hideEvent="mouseout"
+                                                    showCloseIcon="true">
+                                        <p:graphicImage name="photos/#{t.nombre}"
+                                                        width="200"
+                                                        height="105" />
+                                    </p:overlayPanel>
+                                </p:column>
+
+                                <p:column style="width: 15px;">
+                                    <h:selectBooleanCheckbox value="#{t.seleccionado}" />
+                                </p:column>
+
+                                <p:column headerText="Nombre">
+                                    <h:outputText value="#{t.nombre}"/>
+                                </p:column>
+                            </p:dataTable>
+
+                            <p:commandButton value="Refrescar Galería"
+                                             update=":galeriaId"
+                                             icon="ui-icon-refresh"/>
+
+                            <p:commandButton type="button"
+                                             process="none"
+                                             value='Subir Fotos'
+                                             onclick="PF('subirFotosDialog').show();"
+                                             icon='ui-icon-plusthick'/>
+                        </h:form>
+                        <p:galleria id="galeriaId"
+                                    value="#{galeriaBean.fotos.stream().filter((i)->i.seleccionado eq true).toList()}"
+                                    var='t'
+                                    panelWidth="800"
+                                    panelHeight="400"
+                                    showCaption="true"
+                                    autoPlay="false"
+                                    effectSpeed="1000">
+                            <p:graphicImage name="photos/#{t.nombre}" 
+                                            title="#{t.nombre}"
+                                            width="800"
+                                            height="400" />
+                        </p:galleria>
+                    </p:panelGrid>
+                </p:layoutUnit>
+            </p:layout>
+
+            <p:dialog header="Subir fotos nuevas"
+                      widgetVar="subirFotosDialog"
+                      modal="true"
+                      resizable="false"
+                      width="850" height="500">
+                <h:form>
+                    <p:fileUpload id='uploadFileId'
+                                  fileUploadListener="#{galeriaBean.subirArchivos}"
+                                  mode="advanced"
+                                  multiple="true"
+                                  update="uploadFileId, :tableFormId:tablePhotosId"
+                                  sizeLimit="2097152" fileLimit="300"
+                                  allowTypes="/(\.|\/)(gif|jpeg|png)$/"
+                                  dragDropSupport="false">
+
+                    </p:fileUpload>
+                </h:form>
+            </p:dialog>
+        </h:body>
+    </f:view>
+</html>
